@@ -595,6 +595,7 @@ h1, h2, h3, h4, h5, h6 {
 /*  PARAGRAPHS
 /*------------------------------------------*/
 
+p.p-xs { font-size: 0.7375rem; }   /* xs */
 p.p-sm { font-size: 0.9375rem; }   /* 15px */
 p { font-size: 1rem; }             /* 16px */
 p.p-md { font-size: 1.0625rem; }   /* 17px */
