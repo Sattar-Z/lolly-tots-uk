@@ -1,112 +1,82 @@
-$(document).ready(function() {
-
+(function () {
+    emailjs.init("ppvMPcZVxutacWzNu"); // Initialize EmailJS with your Public Key
+  })();
+  
+  $(document).ready(function () {
     "use strict";
-
-    /*----------------------------------------------------*/
-    /*  Contact Form Send Function
-    /*----------------------------------------------------*/
-
-    $(".contact-form").submit(function(e) {
-        e.preventDefault();
-        var name = $(".name");
-        var email = $(".email");
-        var phone = $(".phone");
-        var childAge = $(".child-age");
-        var flag = false;
-
-        if (name.val() == "") {
-            name.closest(".form-control").addClass("error");
-            name.focus();
-            flag = false;
-            return false;
+  
+    // Submit the contact form via EmailJS
+    $("form[name='contactform']").submit(function (e) {
+      e.preventDefault(); // Prevent the default form submission
+  
+      // Clear previous messages and errors
+      $(".loading").html("").hide();
+      var enquiryType = $("select[name='enquiry-type']");
+      var name = $("input[name='name']");
+      var email = $("input[name='email']");
+      var phone = $("input[name='phone']");
+      var childAge = $("select[name='child-age']");
+      var lookingFor = $("input[name='lookingFor']");
+  
+      // Basic validation
+      var fields = [enquiryType, name, email, phone, childAge, lookingFor];
+      var isValid = true;
+  
+      fields.forEach(function(field) {
+        if (field.val() == "" || field.val() == null) {
+          field.addClass("error");
+          isValid = false;
         } else {
-            name.closest(".form-control").removeClass("error").addClass("success");
-        } 
-
-        if (email.val() == "") {
-            email.closest(".form-control").addClass("error");
-            email.focus();
-            flag = false;
-            return false;
-        } else {
-            email.closest(".form-control").removeClass("error").addClass("success");
+          field.removeClass("error").addClass("success");
         }
-
-        if (phone.val() == "") {
-            phone.closest(".form-control").addClass("error");
-            phone.focus();
-            flag = false;
-            return false;
-        } else {
-            phone.closest(".form-control").removeClass("error").addClass("success");
-        }
-
-        if (childAge.val() == "" || childAge.val() < 0.25 || childAge.val() > 5) { // 0.25 = 3 months
-            childAge.closest(".form-control").addClass("error");
-            childAge.focus();
-            flag = false;
-            return false;
-        } else {
-            childAge.closest(".form-control").removeClass("error").addClass("success");
-        }
-
-        flag = true;
-
-        if (flag) {
-            // Proceed with formSubmit.co action
-            $(this).unbind('submit').submit();
-        }
-    });
-
-    $("#reset").on('click', function() {
-        $(".form-control").removeClass("success").removeClass("error");
-    });
-
-    /*----------------------------------------------------*/
-    /*  Contact Form Validation
-    /*----------------------------------------------------*/
-    
-    $(".contact-form").validate({
-        rules:{ 
-                name:{
-                    required: true,
-                    minlength: 1,
-                    maxlength: 50,
-                },
-                email:{
-                    required: true,
-                    email: true,
-                },
-                phone:{
-                    required: true,
-                    minlength: 10,
-                    maxlength: 15,
-                },
-                "child-age":{
-                    required: true,
-                    number: true,
-                    min: 0.25, // 3 months
-                    max: 5, // 5 years
-                }
+      });
+  
+      if (!isValid) {
+        fields.find(field => field.hasClass("error")).first().focus();
+        return false;
+      }
+  
+      // Set loading text or spinner
+      $(".loading")
+        .html('<img src="images/Ellipsis@1x-4.2s-200px-200px.svg" alt="Loading..." />')
+        .fadeIn("slow");
+  
+      // Prepare data for EmailJS
+      var templateParams = {
+        enquiryType: enquiryType.val(),
+        name: name.val(),
+        email: email.val(),
+        phone: phone.val(),
+        childAge: childAge.val(),
+        lookingFor: lookingFor.val()
+      };
+  
+      // Send the email using EmailJS
+      emailjs.send("service_h94jw7r", "template_72wsja6", templateParams).then(
+        function (response) {
+          // On success
+          $(".form-control").removeClass("success");
+          $(".loading")
+            .html('<font color="#48af4b">Message sent successfully.</font>')
+            .delay(3000)
+            .fadeOut("slow");
+          $("form[name='contactform']")[0].reset(); // Reset the form
         },
-        messages:{
-            name:{
-                required: "Please enter your full name."
-            }, 
-            email:{
-                required: "We need your email address to contact you.",
-                email: "Your email address must be in the format of name@domain.com"
-            }, 
-            phone:{
-                required: "Please enter your contact number.",
-                minlength: "Phone number must be at least 10 digits."
-            },
-            "child-age":{
-                required: "Please provide the age of your child.",
-                number: "Please enter a valid number for age.",
-                min: "Age must be at least 3 months.",
-                max: "Age must be 5 years or less."
-            }
+        function (error) {
+          // On error
+          $(".loading")
+            .html('<font color="#ff5607">Message not sent. Please try again.</font>')
+            .delay(3000)
+            .fadeOut("slow");
         }
+      );
+  
+      return false; // Prevent form submission
     });
-});
+  
+    // Reset button handler
+    $("#reset").on("click", function () {
+      $("form[name='contactform']")[0].reset();
+      $(".form-control").removeClass("success").removeClass("error");
+    });
+  });

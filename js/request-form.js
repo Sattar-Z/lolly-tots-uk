@@ -1,41 +1,84 @@
+(function () {
+  emailjs.init("ppvMPcZVxutacWzNu"); // EmailJS Public Key
+})();
+
 $(document).ready(function () {
   "use strict";
 
-  $(".request-form").submit(function (e) {
-    var email = $(".email");
-    var flag = true;
+  // Submit the request form via EmailJS
+  $("form[name='requestForm']").submit(function (e) {
+    e.preventDefault(); // Prevent the default form submission
 
-    if (email.val() == "") {
-      email.closest(".form-control").addClass("error");
-      email.focus();
-      flag = false;
+    // Clear previous messages and errors
+    $(".loading").html("").hide();
+    var name = $("input[name='name']");
+    var email = $("input[name='email']");
+    var childAge = $("select[name='childAge']");
+    var visitDate = $("input[name='visitDate']");
+
+    // Basic validation
+    if (name.val() == "") {
+      name.addClass("error");
+      name.focus();
+      return false;
     } else {
-      email.closest(".form-control").removeClass("error").addClass("success");
+      name.removeClass("error").addClass("success");
+    }
+    if (email.val() == "") {
+      email.addClass("error");
+      email.focus();
+      return false;
+    } else {
+      email.removeClass("error").addClass("success");
+    }
+    if (childAge.val() == null || childAge.val() == "") {
+      childAge.addClass("error");
+      childAge.focus();
+      return false;
+    } else {
+      childAge.removeClass("error").addClass("success");
+    }
+    if (visitDate.val() == "") {
+      visitDate.addClass("error");
+      visitDate.focus();
+      return false;
+    } else {
+      visitDate.removeClass("error").addClass("success");
     }
 
-    // If flag is still true, let the form submit
-    return flag;
-  });
+    // Set loading text or spinner
+    $(".loading")
+      .html('<img src="images/Ellipsis@1x-4.2s-200px-200px.svg" alt="Loading..." />')
+      .fadeIn("slow");
 
-  $("#reset").on("click", function () {
-    $(".form-control").removeClass("success").removeClass("error");
-  });
+    // Prepare data for EmailJS
+    var templateParams = {
+      name: name.val(),
+      email: email.val(),
+      childAge: childAge.val(),
+      visitDate: visitDate.val()
+    };
 
-  /*----------------------------------------------------*/
-  /*  Request Form Validation
-    /*----------------------------------------------------*/
-  $(".request-form").validate({
-    rules: {
-      email: {
-        required: true,
-        email: true,
+    // Send the email using EmailJS
+    emailjs.send("service_h94jw7r", "template_cih3ivp", templateParams).then(
+      function (response) {
+        // On success
+        $(".form-control").removeClass("success");
+        $(".loading")
+          .html('<font color="#48af4b">Request sent successfully.</font>')
+          .delay(3000)
+          .fadeOut("slow");
+        $("form[name='requestForm']")[0].reset(); // Reset the form
       },
-    },
-    messages: {
-      email: {
-        required: "We need your email address to contact you",
-        email: "Your email address must be in the format of name@domain.com",
-      },
-    },
+      function (error) {
+        // On error
+        $(".loading")
+          .html('<font color="#ff5607">Request not sent. Please try again.</font>')
+          .delay(3000)
+          .fadeOut("slow");
+      }
+    );
+
+    return false; // Prevent form submission
   });
 });
